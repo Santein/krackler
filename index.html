@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kirby Krackle Generator</title>
+    <style>
+        :root {
+            --primary-color: #3a3a3a;
+            --secondary-color: #e63946;
+            --background-color: #f1faee;
+            --control-bg: #457b9d;
+            --control-text: white;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            text-shadow: 3px 3px 0 var(--secondary-color);
+            margin-bottom: 0;
+        }
+
+        .tagline {
+            font-style: italic;
+            margin-top: 5px;
+            color: var(--primary-color);
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .canvas-container {
+            width: 100%;
+            position: relative;
+            background-color: white;
+            border: 4px solid var(--primary-color);
+            box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            cursor: crosshair;
+        }
+
+        .controls {
+            width: 100%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 4px solid var(--primary-color);
+            box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        input[type="range"] {
+            width: 100%;
+        }
+
+        input[type="number"], input[type="color"] {
+            width: 80px;
+            padding: 5px;
+            border: 2px solid var(--primary-color);
+        }
+
+        .range-value {
+            display: inline-block;
+            width: 40px;
+            text-align: right;
+        }
+
+        .color-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background-color: var(--control-bg);
+            color: var(--control-text);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            box-shadow: 3px 3px 0 var(--primary-color);
+        }
+        
+        /* Main action buttons section */
+        .main-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 5px 5px 0 var(--primary-color);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 2px 2px 0 var(--primary-color);
+        }
+
+        .btn-primary {
+            background-color: var(--secondary-color);
+        }
+
+        .krackle-switch {
+            display: flex;
+            margin-top: 15px;
+            border: 2px solid var(--primary-color);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .krackle-switch button {
+            flex: 1;
+            background-color: #ddd;
+            border: none;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .krackle-switch button.active {
+            background-color: var(--control-bg);
+            color: white;
+        }
+
+        .switch-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-right: 10px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--control-bg);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            padding-bottom: 20px;
+        }
+        
+        footer a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+            color: var(--control-bg);
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .canvas-resize-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .canvas-resize-controls input {
+            width: 60px;
+        }
+
+        .presets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            background-color: #ddd;
+            border: 1px solid var(--primary-color);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .preset-btn:hover {
+            background-color: var(--control-bg);
+            color: white;
+        }
+
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--primary-color);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+        
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .krackle-modes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .mode-btn {
+            font-size: 0.9rem;
+            padding: 5px;
+            background-color: #ddd;
+            border: 1px solid var(--primary-color);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .mode-btn.active {
+            background-color: var(--control-bg);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Kirby Krackle Generator</h1>
+        <p class="tagline">Create comic book energy dots inspired by the legendary Jack Kirby</p>
+    </header>
+
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="krackleCanvas"></canvas>
+            <div id="loading">Generating Krackles...</div>
+        </div>
+
+        <div class="controls">
+            <!-- Main action buttons - spans the full width -->
+            <div class="main-actions">
+                <button id="invokeKirby" class="btn btn-primary">Invoke Jack Kirby!</button>
+                <button id="downloadBtn" class="btn">Download Image</button>
+                <button id="clearCanvas" class="btn">Clear Canvas</button>
+            </div>
+
+            <!-- Colors section -->
+            <div class="control-group">
+                <label for="backgroundColor" class="tooltip">Background Color
+                    <span class="tooltip-text">Choose the background color for your krackle scene</span>
+                </label>
+                <div class="color-controls">
+                    <input type="color" id="backgroundColor" value="#4169e1">
+                    <button id="randomColor" class="btn" style="margin-bottom: 0;">Random</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label for="krackleColor" class="tooltip">Krackle Color
+                    <span class="tooltip-text">Choose the color for your krackle dots</span>
+                </label>
+                <div class="color-controls">
+                    <input type="color" id="krackleColor" value="#000000">
+                    <button id="randomKrackleColor" class="btn" style="margin-bottom: 0;">Random</button>
+                </div>
+            </div>
+
+            <!-- Mode toggles grouped together -->
+            <div class="control-group">
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox" id="inverseModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="tooltip">Inverse Mode
+                        <span class="tooltip-text">When enabled, draws white krackles instead of using the krackle color</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="switch-container">
+                    <label class="switch">
+                        <input type="checkbox" id="interactiveModeToggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span class="tooltip">Interactive Mode
+                        <span class="tooltip-text">Click on canvas to add krackles at specific locations</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Krackle styles and presets grouped together -->
+            <div class="control-group">
+                <label for="krackle-mode" class="tooltip">Krackle Style
+                    <span class="tooltip-text">Choose how your krackles will appear</span>
+                </label>
+                <div class="krackle-modes">
+                    <button class="mode-btn active" data-mode="circles">Circles</button>
+                    <button class="mode-btn" data-mode="dots">Dots</button>
+                    <button class="mode-btn" data-mode="starbursts">Starbursts</button>
+                    <button class="mode-btn" data-mode="mixed">Mixed</button>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label class="tooltip">Presets
+                    <span class="tooltip-text">Quick settings for different effects</span>
+                </label>
+                <div class="presets">
+                    <button class="preset-btn" data-preset="classic">Classic</button>
+                    <button class="preset-btn" data-preset="cosmic">Cosmic</button>
+                    <button class="preset-btn" data-preset="energy">Energy</button>
+                    <button class="preset-btn" data-preset="explosion">Explosion</button>
+                </div>
+            </div>
+
+            <!-- Circle size controls grouped together -->
+            <div class="control-group">
+                <label for="minRadius" class="tooltip">Min Circle Size
+                    <span class="tooltip-text">Smallest possible circle size</span>
+                </label>
+                <input type="range" id="minRadius" min="1" max="20" value="2">
+                <span id="minRadiusValue" class="range-value">2</span>
+            </div>
+            
+            <div class="control-group">
+                <label for="mediumRadius" class="tooltip">Medium Circle Size
+                    <span class="tooltip-text">Medium-sized circles</span>
+                </label>
+                <input type="range" id="mediumRadius" min="5" max="50" value="15">
+                <span id="mediumRadiusValue" class="range-value">15</span>
+            </div>
+
+            <div class="control-group">
+                <label for="maxRadius" class="tooltip">Max Circle Size
+                    <span class="tooltip-text">Largest possible circle size</span>
+                </label>
+                <input type="range" id="maxRadius" min="10" max="100" value="30">
+                <span id="maxRadiusValue" class="range-value">30</span>
+            </div>
+
+            <!-- Remaining controls -->
+            <div class="control-group">
+                <label for="startingPoints" class="tooltip">Starting Points
+                    <span class="tooltip-text">The number of clusters to create</span>
+                </label>
+                <input type="range" id="startingPoints" min="1" max="50" value="5">
+                <span id="startingPointsValue" class="range-value">5</span>
+            </div>
+
+            <div class="control-group">
+                <label for="circlesPerPoint" class="tooltip">Circles Per Point
+                    <span class="tooltip-text">How many bubbles to draw in each cluster</span>
+                </label>
+                <input type="range" id="circlesPerPoint" min="1" max="100" value="10">
+                <span id="circlesPerPointValue" class="range-value">10</span>
+            </div>
+
+            <div class="control-group">
+                <label for="maxDistance" class="tooltip">Max Distance
+                    <span class="tooltip-text">Maximum distance between circles in a cluster</span>
+                </label>
+                <input type="range" id="maxDistance" min="5" max="200" value="50">
+                <span id="maxDistanceValue" class="range-value">50</span>
+            </div>
+
+            <div class="control-group">
+                <label class="tooltip">Canvas Size
+                    <span class="tooltip-text">Adjust the size of your canvas</span>
+                </label>
+                <div class="canvas-resize-controls">
+                    <input type="number" id="canvasWidth" min="300" max="2000" value="1000">
+                    <span>×</span>
+                    <input type="number" id="canvasHeight" min="300" max="2000" value="500">
+                    <button id="resizeCanvas" class="btn" style="width: auto; margin-bottom: 0;">Resize</button>
+                </div>
+            </div>
+        </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Inspired by the legendary comic book artist <a href="https://en.wikipedia.org/wiki/Jack_Kirby" target="_blank">Jack Kirby</a> and his iconic <a href="https://en.wikipedia.org/wiki/Kirby_Krackle" target="_blank">"Kirby Krackle"</a> technique.</p>
+        <p>Made with ♥️ by <a href="https://linktr.ee/santo.gaglione" target="_blank">Santein</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Canvas setup
+            const canvas = document.getElementById('krackleCanvas');
+            const ctx = canvas.getContext('2d');
+            const loadingIndicator = document.getElementById('loading');
+            
+            // Initialize canvas size - wider for horizontal layout
+            let canvasWidth = 1000;
+            let canvasHeight = 500;
+            
+            // Set up the canvas
+            function setupCanvas() {
+                // Set canvas dimensions
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                
+                // Initial clear with current background color
+                clearCanvas();
+            }
+            
+            // Controls and values
+            const startingPointsSlider = document.getElementById('startingPoints');
+            const startingPointsValue = document.getElementById('startingPointsValue');
+            const circlesPerPointSlider = document.getElementById('circlesPerPoint');
+            const circlesPerPointValue = document.getElementById('circlesPerPointValue');
+            const maxDistanceSlider = document.getElementById('maxDistance');
+            const maxDistanceValue = document.getElementById('maxDistanceValue');
+            const minRadiusSlider = document.getElementById('minRadius');
+            const minRadiusValue = document.getElementById('minRadiusValue');
+            const mediumRadiusSlider = document.getElementById('mediumRadius');
+            const mediumRadiusValue = document.getElementById('mediumRadiusValue');
+            const maxRadiusSlider = document.getElementById('maxRadius');
+            const maxRadiusValue = document.getElementById('maxRadiusValue');
+            const backgroundColorPicker = document.getElementById('backgroundColor');
+            const krackleColorPicker = document.getElementById('krackleColor');
+            const randomColorBtn = document.getElementById('randomColor');
+            const randomKrackleColorBtn = document.getElementById('randomKrackleColor');
+            const inverseModeToggle = document.getElementById('inverseModeToggle');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const clearCanvasBtn = document.getElementById('clearCanvas');
+            const canvasWidthInput = document.getElementById('canvasWidth');
+            const canvasHeightInput = document.getElementById('canvasHeight');
+            const resizeCanvasBtn = document.getElementById('resizeCanvas');
+            const invokeKirbyBtn = document.getElementById('invokeKirby');
+            const interactiveModeToggle = document.getElementById('interactiveModeToggle');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const presetButtons = document.querySelectorAll('.preset-btn');
+            
+            // Current settings
+            let currentSettings = {
+                startingPoints: 5,
+                circlesPerPoint: 10,
+                maxDistance: 50,
+                minRadius: 2,
+                mediumRadius: 15,
+                maxRadius: 30,
+                backgroundColor: '#4169e1',
+                krackleColor: '#000000',
+                inverseMode: false,
+                krackleMode: 'circles',
+                interactiveMode: true
+            };
+            
+            // Update settings from controls
+            function updateSettings() {
+                currentSettings.startingPoints = parseInt(startingPointsSlider.value);
+                currentSettings.circlesPerPoint = parseInt(circlesPerPointSlider.value);
+                currentSettings.maxDistance = parseInt(maxDistanceSlider.value);
+                currentSettings.minRadius = parseInt(minRadiusSlider.value);
+                currentSettings.mediumRadius = parseInt(mediumRadiusSlider.value);
+                currentSettings.maxRadius = parseInt(maxRadiusSlider.value);
+                currentSettings.backgroundColor = backgroundColorPicker.value;
+                currentSettings.krackleColor = krackleColorPicker.value;
+                currentSettings.inverseMode = inverseModeToggle.checked;
+                currentSettings.interactiveMode = interactiveModeToggle.checked;
+            }
+            
+            // Random integer helper function
+            function getRandomInt(min, max) {
+                min = Math.ceil(min);
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            
+            // Generate random color
+            function getRandomColor() {
+                const r = getRandomInt(0, 255);
+                const g = getRandomInt(0, 255);
+                const b = getRandomInt(0, 255);
+                return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+            }
+            
+            // Draw a circle
+            function drawCircle(x, y, radius) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw a dot (filled circle)
+            function drawDot(x, y, radius) {
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Draw a starburst
+            function drawStarburst(x, y, radius) {
+                const points = getRandomInt(5, 12);
+                const innerRadius = radius * 0.4;
+                
+                ctx.beginPath();
+                for (let i = 0; i < points * 2; i++) {
+                    const currentRadius = i % 2 === 0 ? radius : innerRadius;
+                    const angle = (Math.PI * 2 * i) / (points * 2);
+                    const pointX = x + Math.cos(angle) * currentRadius;
+                    const pointY = y + Math.sin(angle) * currentRadius;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(pointX, pointY);
+                    } else {
+                        ctx.lineTo(pointX, pointY);
+                    }
+                }
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            // Draw a krackle element based on mode
+            function drawKrackleElement(x, y, radius, mode) {
+                switch(mode) {
+                    case 'circles':
+                        drawCircle(x, y, radius);
+                        break;
+                    case 'dots':
+                        drawDot(x, y, radius);
+                        break;
+                    case 'starbursts':
+                        drawStarburst(x, y, radius);
+                        break;
+                    case 'mixed':
+                        const randomChoice = getRandomInt(1, 3);
+                        if (randomChoice === 1) drawCircle(x, y, radius);
+                        else if (randomChoice === 2) drawDot(x, y, radius);
+                        else drawStarburst(x, y, radius);
+                        break;
+                    default:
+                        drawCircle(x, y, radius);
+                }
+            }
+            
+            // Generate Kirby Krackle
+            function generateKrackle(startX = null, startY = null, useSettings = true) {
+                if (useSettings) {
+                    updateSettings();
+                }
+                
+                // Set fill color based on inverse mode
+                if (currentSettings.inverseMode) {
+                    ctx.fillStyle = 'white';
+                } else {
+                    ctx.fillStyle = currentSettings.krackleColor;
+                }
+                
+                // If startX and startY are provided, create krackle at that point
+                // Otherwise, create random krackles based on startingPoints
+                const pointsToProcess = startX !== null && startY !== null
+                    ? [{x: startX, y: startY}]
+                    : Array.from({length: currentSettings.startingPoints}, () => ({
+                        x: getRandomInt(0, canvasWidth),
+                        y: getRandomInt(0, canvasHeight)
+                    }));
+                
+                // Process each starting point
+                pointsToProcess.forEach(point => {
+                    let x = point.x;
+                    let y = point.y;
+                    
+                    // Generate circles for this point
+                    for (let i = 0; i < currentSettings.circlesPerPoint; i++) {
+                        // Move in a random direction
+                        x += getRandomInt(-currentSettings.maxDistance, currentSettings.maxDistance);
+                        y += getRandomInt(-currentSettings.maxDistance, currentSettings.maxDistance);
+                        
+                        // Skip if outside canvas
+                        if (x < 0 || x > canvasWidth || y < 0 || y > canvasHeight) {
+                            continue;
+                        }
+                        
+                        // Random radius
+                        let radius;
+                        const radiusType = getRandomInt(1, 3);
+                        if (radiusType === 1) {
+                            radius = getRandomInt(currentSettings.minRadius, currentSettings.mediumRadius / 2);
+                        } else if (radiusType === 2) {
+                            radius = getRandomInt(currentSettings.mediumRadius / 2, currentSettings.mediumRadius);
+                        } else {
+                            radius = getRandomInt(currentSettings.mediumRadius, currentSettings.maxRadius);
+                        }
+                        
+                        // Draw the krackle element
+                        drawKrackleElement(x, y, radius, currentSettings.krackleMode);
+                    }
+                });
+            }
+            
+            // Clear canvas
+            function clearCanvas() {
+                ctx.fillStyle = currentSettings.backgroundColor;
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+            }
+            
+            // Invoke Kirby (main function to generate krackle)
+            function invokeKirby() {
+                loadingIndicator.style.display = 'block';
+                
+                // Use setTimeout to allow the UI to update before heavy computation
+                setTimeout(() => {
+                    clearCanvas();
+                    generateKrackle();
+                    loadingIndicator.style.display = 'none';
+                }, 50);
+            }
+            
+            // Event listeners for controls
+            startingPointsSlider.addEventListener('input', () => {
+                startingPointsValue.textContent = startingPointsSlider.value;
+            });
+            
+            circlesPerPointSlider.addEventListener('input', () => {
+                circlesPerPointValue.textContent = circlesPerPointSlider.value;
+            });
+            
+            maxDistanceSlider.addEventListener('input', () => {
+                maxDistanceValue.textContent = maxDistanceSlider.value;
+            });
+            
+            minRadiusSlider.addEventListener('input', () => {
+                minRadiusValue.textContent = minRadiusSlider.value;
+                // Ensure min radius is less than max radius
+                if (parseInt(minRadiusSlider.value) > parseInt(maxRadiusSlider.value)) {
+                    maxRadiusSlider.value = minRadiusSlider.value;
+                    maxRadiusValue.textContent = maxRadiusSlider.value;
+                }
+            });
+            
+            mediumRadiusSlider.addEventListener('input', () => {
+                mediumRadiusValue.textContent = mediumRadiusSlider.value;
+                // Ensure medium radius is between min and max
+                if (parseInt(mediumRadiusSlider.value) < parseInt(minRadiusSlider.value)) {
+                    minRadiusSlider.value = mediumRadiusSlider.value;
+                    minRadiusValue.textContent = minRadiusSlider.value;
+                }
+                if (parseInt(mediumRadiusSlider.value) > parseInt(maxRadiusSlider.value)) {
+                    maxRadiusSlider.value = mediumRadiusSlider.value;
+                    maxRadiusValue.textContent = maxRadiusSlider.value;
+                }
+            });
+            
+            maxRadiusSlider.addEventListener('input', () => {
+                maxRadiusValue.textContent = maxRadiusSlider.value;
+                // Ensure max radius is greater than medium radius
+                if (parseInt(maxRadiusSlider.value) < parseInt(mediumRadiusSlider.value)) {
+                    mediumRadiusSlider.value = maxRadiusSlider.value;
+                    mediumRadiusValue.textContent = mediumRadiusSlider.value;
+                }
+            });
+            
+            backgroundColorPicker.addEventListener('input', () => {
+                currentSettings.backgroundColor = backgroundColorPicker.value;
+                clearCanvas();
+            });
+            
+            randomColorBtn.addEventListener('click', () => {
+                const randomColor = getRandomColor();
+                backgroundColorPicker.value = randomColor;
+                currentSettings.backgroundColor = randomColor;
+                clearCanvas();
+            });
+            
+            // Handle inverse mode toggle
+            inverseModeToggle.addEventListener('change', () => {
+                currentSettings.inverseMode = inverseModeToggle.checked;
+            });
+            
+            // Handle interactive mode toggle
+            interactiveModeToggle.addEventListener('change', () => {
+                currentSettings.interactiveMode = interactiveModeToggle.checked;
+            });
+            
+            // Canvas click event for interactive mode
+            canvas.addEventListener('click', (e) => {
+                if (!currentSettings.interactiveMode) return;
+                
+                // Get click position relative to canvas
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+                const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+                
+                // Generate krackle at click position
+                generateKrackle(x, y);
+            });
+            
+            // Download image
+            downloadBtn.addEventListener('click', () => {
+                const dataURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'kirby-krackle.png';
+                link.href = dataURL;
+                link.click();
+            });
+            
+            // Clear canvas button
+            clearCanvasBtn.addEventListener('click', clearCanvas);
+            
+            // Invoke Kirby button
+            invokeKirbyBtn.addEventListener('click', invokeKirby);
+            
+            // Resize canvas
+            resizeCanvasBtn.addEventListener('click', () => {
+                canvasWidth = Math.min(2000, Math.max(300, parseInt(canvasWidthInput.value) || 800));
+                canvasHeight = Math.min(2000, Math.max(300, parseInt(canvasHeightInput.value) || 600));
+                
+                // Update input values to match actual values (in case they were out of range)
+                canvasWidthInput.value = canvasWidth;
+                canvasHeightInput.value = canvasHeight;
+                
+                setupCanvas();
+            });
+            
+            // Krackle mode buttons
+            modeButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    modeButtons.forEach(btn => btn.classList.remove('active'));
+                    // Add active class to clicked button
+                    button.classList.add('active');
+                    // Update current mode
+                    currentSettings.krackleMode = button.dataset.mode;
+                });
+            });
+            
+            // Preset buttons
+            presetButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const preset = button.dataset.preset;
+                    
+                    switch(preset) {
+                        case 'classic':
+                            startingPointsSlider.value = 5;
+                            startingPointsValue.textContent = 5;
+                            circlesPerPointSlider.value = 15;
+                            circlesPerPointValue.textContent = 15;
+                            maxDistanceSlider.value = 40;
+                            maxDistanceValue.textContent = 40;
+                            minRadiusSlider.value = 2;
+                            minRadiusValue.textContent = 2;
+                            mediumRadiusSlider.value = 15;
+                            mediumRadiusValue.textContent = 15;
+                            maxRadiusSlider.value = 25;
+                            maxRadiusValue.textContent = 25;
+                            backgroundColorPicker.value = '#4169e1';
+                            krackleColorPicker.value = '#000000';
+                            currentSettings.backgroundColor = '#4169e1';
+                            currentSettings.krackleColor = '#000000';
+                            inverseModeToggle.checked = false;
+                            
+                            // Set mode to circles
+                            modeButtons.forEach(btn => btn.classList.remove('active'));
+                            document.querySelector('[data-mode="circles"]').classList.add('active');
+                            currentSettings.krackleMode = 'circles';
+                            break;
+                            
+                        case 'cosmic':
+                            startingPointsSlider.value = 15;
+                            startingPointsValue.textContent = 15;
+                            circlesPerPointSlider.value = 25;
+                            circlesPerPointValue.textContent = 25;
+                            maxDistanceSlider.value = 60;
+                            maxDistanceValue.textContent = 60;
+                            minRadiusSlider.value = 1;
+                            minRadiusValue.textContent = 1;
+                            mediumRadiusSlider.value = 10;
+                            mediumRadiusValue.textContent = 10;
+                            maxRadiusSlider.value = 20;
+                            maxRadiusValue.textContent = 20;
+                            backgroundColorPicker.value = '#000080';
+                            krackleColorPicker.value = '#FFFFFF';
+                            currentSettings.backgroundColor = '#000080';
+                            currentSettings.krackleColor = '#FFFFFF';
+                            inverseModeToggle.checked = true;
+                            
+                            // Set mode to mixed
+                            modeButtons.forEach(btn => btn.classList.remove('active'));
+                            document.querySelector('[data-mode="mixed"]').classList.add('active');
+                            currentSettings.krackleMode = 'mixed';
+                            break;
+                            
+                        case 'energy':
+                            startingPointsSlider.value = 3;
+                            startingPointsValue.textContent = 3;
+                            circlesPerPointSlider.value = 50;
+                            circlesPerPointValue.textContent = 50;
+                            maxDistanceSlider.value = 30;
+                            maxDistanceValue.textContent = 30;
+                            minRadiusSlider.value = 3;
+                            minRadiusValue.textContent = 3;
+                            mediumRadiusSlider.value = 8;
+                            mediumRadiusValue.textContent = 8;
+                            maxRadiusSlider.value = 15;
+                            maxRadiusValue.textContent = 15;
+                            backgroundColorPicker.value = '#8B0000';
+                            krackleColorPicker.value = '#FFFF00';
+                            currentSettings.backgroundColor = '#8B0000';
+                            currentSettings.krackleColor = '#FFFF00';
+                            inverseModeToggle.checked = true;
+                            
+                            // Set mode to starbursts
+                            modeButtons.forEach(btn => btn.classList.remove('active'));
+                            document.querySelector('[data-mode="starbursts"]').classList.add('active');
+                            currentSettings.krackleMode = 'starbursts';
+                            break;
+                            
+                        case 'explosion':
+                            startingPointsSlider.value = 1;
+                            startingPointsValue.textContent = 1;
+                            circlesPerPointSlider.value = 100;
+                            circlesPerPointValue.textContent = 100;
+                            maxDistanceSlider.value = 200;
+                            maxDistanceValue.textContent = 200;
+                            minRadiusSlider.value = 2;
+                            minRadiusValue.textContent = 2;
+                            mediumRadiusSlider.value = 20;
+                            mediumRadiusValue.textContent = 20;
+                            maxRadiusSlider.value = 50;
+                            maxRadiusValue.textContent = 50;
+                            backgroundColorPicker.value = '#FF4500';
+                            krackleColorPicker.value = '#000000';
+                            currentSettings.backgroundColor = '#FF4500';
+                            currentSettings.krackleColor = '#000000';
+                            inverseModeToggle.checked = false;
+                            
+                            // Set mode to dots
+                            modeButtons.forEach(btn => btn.classList.remove('active'));
+                            document.querySelector('[data-mode="dots"]').classList.add('active');
+                            currentSettings.krackleMode = 'dots';
+                            break;
+                    }
+                    
+                    // Update the canvas with the new settings
+                    clearCanvas();
+                    invokeKirby();
+                });
+            });
+            
+            // Easter egg - console message when invoking Kirby
+            function printKirbyInvocation() {
+                console.log(
+                    "%c O Jack Kirby, master of comics, I call upon thee: \n" +
+                    "%c guide our random function and make us some cool krackles!",
+                    "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #e63946;",
+                    "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #457b9d;"
+                );
+                console.log("%c Jack Kirby invocation successful.", "font-weight: bold; font-size: 16px;");
+            }
+            
+            // Initialize
+            setupCanvas();
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Invoke with spacebar
+                if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                    e.preventDefault();
+                    invokeKirby();
+                    printKirbyInvocation();
+                }
+                
+                // Clear with Escape
+                if (e.code === 'Escape') {
+                    clearCanvas();
+                }
+                
+                // Download with Ctrl+S
+                if (e.code === 'KeyS' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    downloadBtn.click();
+                }
+            });
+            
+            // Animated button when "Invoking Kirby"
+            invokeKirbyBtn.addEventListener('click', () => {
+                invokeKirbyBtn.disabled = true;
+                invokeKirbyBtn.textContent = "Invoking Jack Kirby...";
+                printKirbyInvocation();
+                
+                setTimeout(() => {
+                    invokeKirbyBtn.disabled = false;
+                    invokeKirbyBtn.textContent = "Invoke Jack Kirby!";
+                }, 1000);
+            });
+            
+            // Initialize with a first krackle
+            invokeKirby();
+        });
+    </script>
+</body>
+</html>
+                            
