@@ -242,6 +242,10 @@
             color: var(--control-bg);
         }
 
+        footer p {
+            margin: 8px 0;
+        }
+
         #loading {
             position: absolute;
             top: 50%;
@@ -489,14 +493,11 @@
                 </div>
             </div>
         </div>
-                    
-                </div>
-            </div>
-        </div>
     </div>
 
     <footer>
         <p>Inspired by the legendary comic book artist <a href="https://en.wikipedia.org/wiki/Jack_Kirby" target="_blank">Jack Kirby</a> and his iconic <a href="https://en.wikipedia.org/wiki/Kirby_Krackle" target="_blank">"Kirby Krackle"</a> technique.</p>
+        <p>Try the <a href="https://santein.github.io/krackler3D/" target="_blank">3D version</a>!</p>
         <p>Made with ♥️ by <a href="https://linktr.ee/santo.gaglione" target="_blank">Santein</a></p>
     </footer>
 
@@ -576,6 +577,12 @@
                 currentSettings.krackleColor = krackleColorPicker.value;
                 currentSettings.inverseMode = inverseModeToggle.checked;
                 currentSettings.interactiveMode = interactiveModeToggle.checked;
+            }
+            
+            // Function to update color inputs display
+            function updateColorInputs() {
+                backgroundColorPicker.value = currentSettings.backgroundColor;
+                krackleColorPicker.value = currentSettings.krackleColor;
             }
             
             // Random integer helper function
@@ -774,11 +781,21 @@
                 clearCanvas();
             });
             
+            krackleColorPicker.addEventListener('input', () => {
+                currentSettings.krackleColor = krackleColorPicker.value;
+            });
+            
             randomColorBtn.addEventListener('click', () => {
                 const randomColor = getRandomColor();
                 backgroundColorPicker.value = randomColor;
                 currentSettings.backgroundColor = randomColor;
                 clearCanvas();
+            });
+            
+            randomKrackleColorBtn.addEventListener('click', () => {
+                const randomColor = getRandomColor();
+                krackleColorPicker.value = randomColor;
+                currentSettings.krackleColor = randomColor;
             });
             
             // Handle inverse mode toggle
@@ -817,7 +834,27 @@
             clearCanvasBtn.addEventListener('click', clearCanvas);
             
             // Invoke Kirby button
-            invokeKirbyBtn.addEventListener('click', invokeKirby);
+            invokeKirbyBtn.addEventListener('click', () => {
+                invokeKirby();
+                
+                // Console Easter egg
+                console.log(
+                    "%c O Jack Kirby, master of comics, I call upon thee: \n" +
+                    "%c guide our random function and make us some cool krackles!",
+                    "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #e63946;",
+                    "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #457b9d;"
+                );
+                console.log("%c Jack Kirby invocation successful.", "font-weight: bold; font-size: 16px;");
+                
+                // Button animation
+                invokeKirbyBtn.disabled = true;
+                invokeKirbyBtn.textContent = "Invoking Jack Kirby...";
+                
+                setTimeout(() => {
+                    invokeKirbyBtn.disabled = false;
+                    invokeKirbyBtn.textContent = "Invoke Jack Kirby!";
+                }, 1000);
+            });
             
             // Resize canvas
             resizeCanvasBtn.addEventListener('click', () => {
@@ -862,8 +899,6 @@
                             mediumRadiusValue.textContent = 15;
                             maxRadiusSlider.value = 25;
                             maxRadiusValue.textContent = 25;
-                            backgroundColorPicker.value = '#4169e1';
-                            krackleColorPicker.value = '#000000';
                             currentSettings.backgroundColor = '#4169e1';
                             currentSettings.krackleColor = '#000000';
                             inverseModeToggle.checked = false;
@@ -887,8 +922,6 @@
                             mediumRadiusValue.textContent = 10;
                             maxRadiusSlider.value = 20;
                             maxRadiusValue.textContent = 20;
-                            backgroundColorPicker.value = '#000080';
-                            krackleColorPicker.value = '#FFFFFF';
                             currentSettings.backgroundColor = '#000080';
                             currentSettings.krackleColor = '#FFFFFF';
                             inverseModeToggle.checked = true;
@@ -912,8 +945,6 @@
                             mediumRadiusValue.textContent = 8;
                             maxRadiusSlider.value = 15;
                             maxRadiusValue.textContent = 15;
-                            backgroundColorPicker.value = '#8B0000';
-                            krackleColorPicker.value = '#FFFF00';
                             currentSettings.backgroundColor = '#8B0000';
                             currentSettings.krackleColor = '#FFFF00';
                             inverseModeToggle.checked = true;
@@ -937,8 +968,6 @@
                             mediumRadiusValue.textContent = 20;
                             maxRadiusSlider.value = 50;
                             maxRadiusValue.textContent = 50;
-                            backgroundColorPicker.value = '#FF4500';
-                            krackleColorPicker.value = '#000000';
                             currentSettings.backgroundColor = '#FF4500';
                             currentSettings.krackleColor = '#000000';
                             inverseModeToggle.checked = false;
@@ -950,25 +979,14 @@
                             break;
                     }
                     
-                    // Update the canvas with the new settings
+                    // Update color inputs to ensure they reflect the current values
+                    updateColorInputs();
+                    
+                    // Update canvas with the new settings
                     clearCanvas();
                     invokeKirby();
                 });
             });
-            
-            // Easter egg - console message when invoking Kirby
-            function printKirbyInvocation() {
-                console.log(
-                    "%c O Jack Kirby, master of comics, I call upon thee: \n" +
-                    "%c guide our random function and make us some cool krackles!",
-                    "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #e63946;",
-                    "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #457b9d;"
-                );
-                console.log("%c Jack Kirby invocation successful.", "font-weight: bold; font-size: 16px;");
-            }
-            
-            // Initialize
-            setupCanvas();
             
             // Add keyboard shortcuts
             document.addEventListener('keydown', (e) => {
@@ -976,7 +994,14 @@
                 if (e.code === 'Space' && !e.target.matches('input, textarea')) {
                     e.preventDefault();
                     invokeKirby();
-                    printKirbyInvocation();
+                    
+                    console.log(
+                        "%c O Jack Kirby, master of comics, I call upon thee: \n" +
+                        "%c guide our random function and make us some cool krackles!",
+                        "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #e63946;",
+                        "font-family: 'Comic Sans MS', cursive; font-size: 14px; color: #457b9d;"
+                    );
+                    console.log("%c Jack Kirby invocation successful.", "font-weight: bold; font-size: 16px;");
                 }
                 
                 // Clear with Escape
@@ -991,22 +1016,12 @@
                 }
             });
             
-            // Animated button when "Invoking Kirby"
-            invokeKirbyBtn.addEventListener('click', () => {
-                invokeKirbyBtn.disabled = true;
-                invokeKirbyBtn.textContent = "Invoking Jack Kirby...";
-                printKirbyInvocation();
-                
-                setTimeout(() => {
-                    invokeKirbyBtn.disabled = false;
-                    invokeKirbyBtn.textContent = "Invoke Jack Kirby!";
-                }, 1000);
-            });
-            
-            // Initialize with a first krackle
+            // Initialize
+            // Set initial values in the color pickers
+            updateColorInputs();
+            setupCanvas();
             invokeKirby();
         });
     </script>
 </body>
 </html>
-                            
